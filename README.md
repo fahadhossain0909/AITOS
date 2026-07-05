@@ -1,2 +1,5 @@
 # AITOS
-Adaptive Intelligence Trading &amp; Research Operating System
+
+Adaptive Intelligence Trading & Research Operating System.
+
+Evidence -> Knowledge -> Decision -> Execution -> Learning.
