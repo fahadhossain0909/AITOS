@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "1.0.0",
+
+  "messages": [
+
+    {
+      "messageId": "MSG-000001",
+      "type": "REQUEST",
+      "protocol": "ACP-1.0",
+      "timestamp": "2026-07-06T00:00:00Z",
+
+      "source": {
+        "agentId": "AGENT-000001",
+        "name": "Architecture Agent"
+      },
+
+      "destination": {
+        "agentId": "AGENT-000002",
+        "name": "Documentation Agent"
+      },
+
+      "correlationId": "TASK-000001",
+
+      "payload": {
+        "action": "review_document",
+        "document": "ADR-0001",
+        "priority": "HIGH"
+      },
+
+      "status": "SENT"
+    },
+
+    {
+      "messageId": "MSG-000002",
+      "type": "RESPONSE",
+      "protocol": "ACP-1.0",
+      "timestamp": "2026-07-06T00:00:05Z",
+
+      "source": {
+        "agentId": "AGENT-000002"
+      },
+
+      "destination": {
+        "agentId": "AGENT-000001"
+      },
+
+      "correlationId": "TASK-000001",
+
+      "payload": {
+        "result": "APPROVED",
+        "confidence": 0.98
+      },
+
+      "status": "SUCCESS"
+    },
+
+    {
+      "messageId": "MSG-000003",
+      "type": "EVENT",
+      "protocol": "ACP-1.0",
+
+      "event": {
+        "eventId": "EVT-000001",
+        "eventType": "TaskCompleted"
+      },
+
+      "payload": {
+        "taskId": "TASK-000001"
+      }
+    },
+
+    {
+      "messageId": "MSG-000004",
+      "type": "ERROR",
+
+      "error": {
+        "errorId": "AOS-CONTEXT-2001",
+        "severity": "ERROR",
+        "retryable": true,
+        "message": "Context not found."
+      },
+
+      "status": "FAILED"
+    },
+
+    {
+      "messageId": "MSG-000005",
+      "type": "BROADCAST",
+
+      "payload": {
+        "announcement": "Repository architecture updated.",
+        "target": "ALL_AGENTS"
+      }
+    },
+
+    {
+      "messageId": "MSG-000006",
+      "type": "DELEGATION",
+
+      "payload": {
+        "delegatedTask": "Security Review",
+        "delegateTo": "AGENT-000003",
+        "priority": "MEDIUM"
+      }
+    },
+
+    {
+      "messageId": "MSG-000007",
+      "type": "MEMORY_SYNC",
+
+      "payload": {
+        "memoryId": "MEM-000001",
+        "operation": "UPDATE",
+        "revision": 2
+      }
+    },
+
+    {
+      "messageId": "MSG-000008",
+      "type": "CONTEXT_EXCHANGE",
+
+      "payload": {
+        "contextId": "CTX-000001",
+        "scope": "Architecture",
+        "authority": "Approved"
+      }
+    }
+  ]
+}
