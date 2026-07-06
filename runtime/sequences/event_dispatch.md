@@ -1,0 +1,1662 @@
+# Event Dispatch Sequence Specification
+
+Document ID: RT-SEQ-EVENT-DISPATCH-001
+
+Version: 1.0.0
+
+Status: Production Draft
+
+Owner: Runtime Architecture Working Group
+
+Component: EVENT_BUS
+
+Related Specifications
+
+- EVENT_BUS.md
+- event_lifecycle.md
+- event_contract.json
+- dispatcher.md
+- event_bus.py
+
+---
+
+# 1. Purpose
+
+This specification defines the canonical runtime sequence for dispatching events throughout the AITOS Runtime.
+
+It specifies:
+
+- event publication
+- validation
+- authentication
+- authorization
+- persistence
+- routing
+- dispatch
+- acknowledgement
+- completion
+- failure handling
+
+All Event Bus implementations SHALL follow this sequence unless an approved Architecture Decision Record (ADR) explicitly defines an alternative.
+
+---
+
+# 2. Scope
+
+Applies to:
+
+- Agent Events
+- Workflow Events
+- Memory Events
+- Context Events
+- Registry Events
+- Governance Events
+- Security Events
+- Plugin Events
+- System Events
+
+---
+
+# 3. Design Principles
+
+The dispatch pipeline SHALL satisfy the following properties.
+
+## Deterministic
+
+The same input SHALL always produce the same routing decision.
+
+---
+
+## Observable
+
+Every stage SHALL generate:
+
+- metrics
+- logs
+- traces
+- audit records
+
+---
+
+## Secure
+
+Authentication SHALL precede authorization.
+
+Authorization SHALL precede routing.
+
+---
+
+## Immutable
+
+The Event payload SHALL remain immutable throughout the dispatch lifecycle.
+
+---
+
+## Recoverable
+
+Failures SHALL support retry, replay and recovery according to policy.
+
+---
+
+# 4. Canonical Dispatch Pipeline
+
+Publisher
+
+↓
+
+Event Creation
+
+↓
+
+Schema Validation
+
+↓
+
+Authentication
+
+↓
+
+Authorization
+
+↓
+
+Metadata Enrichment
+
+↓
+
+Persistence
+
+↓
+
+Routing
+
+↓
+
+Queue Selection
+
+↓
+
+Dispatcher
+
+↓
+
+Subscriber
+
+↓
+
+Acknowledgement
+
+↓
+
+Audit
+
+↓
+
+Completed
+
+---
+
+# 5. Phase 1 — Event Publication
+
+## Actor
+
+Publisher
+
+### Responsibilities
+
+- Construct canonical event
+- Generate Event ID
+- Assign Correlation ID
+- Attach Trace Context
+- Populate Payload
+- Submit Event
+
+### Preconditions
+
+- Publisher authenticated
+- Runtime available
+- Event Contract satisfied
+
+### Output
+
+Created Event
+
+---
+
+# 6. Phase 2 — Validation
+
+Actor
+
+Validation Engine
+
+Validation includes:
+
+- JSON Schema
+- Required Fields
+- Payload Structure
+- Version Compatibility
+- Metadata Verification
+
+Failure
+
+↓
+
+ValidationFailed
+
+Success
+
+↓
+
+Authenticated
+
+---
+
+# 7. Phase 3 — Authentication
+
+Actor
+
+Authentication Service
+
+Supported identity sources:
+
+- Runtime Identity
+- Agent Identity
+- Service Identity
+- Plugin Identity
+
+Success
+
+↓
+
+Authorized
+
+Failure
+
+↓
+
+AuthenticationFailed
+
+---
+
+# 8. Phase 4 — Authorization
+
+Actor
+
+Policy Engine
+
+Evaluation Criteria
+
+- Capability
+- Role
+- Trust Level
+- Topic
+- Runtime Policy
+
+Decision
+
+Permit
+
+↓
+
+Metadata Enrichment
+
+OR
+
+Deny
+
+↓
+
+AuthorizationFailed
+
+---
+
+# 9. Phase 5 — Metadata Enrichment
+
+The Runtime SHALL append canonical metadata.
+
+Examples
+
+Runtime Version
+
+Schema Version
+
+Retry Policy
+
+Delivery Policy
+
+Timestamp
+
+Trust Level
+
+Processing SHALL NOT modify business payload.
+
+---
+
+# 10. Phase 6 — Persistence
+
+Actor
+
+Event Store
+
+Responsibilities
+
+- Append Event
+- Preserve Metadata
+- Preserve Ordering
+- Enable Replay
+
+Failure SHALL prevent dispatch.
+
+---
+
+# 11. Phase 7 — Routing
+
+Actor
+
+Router
+
+Responsibilities
+
+- Resolve Topic
+- Match Subscribers
+- Apply Routing Policy
+- Determine Delivery Mode
+
+Outputs
+
+Destination List
+
+Queue Assignment
+
+Delivery Policy
+
+---
+
+# 12. Queue Selection
+
+## 12.1 Purpose
+
+After successful routing, the Event Bus SHALL assign each event to an execution queue.
+
+Queue selection determines the execution order, delivery policy, and dispatch strategy while preserving the ordering guarantees defined by the Runtime.
+
+---
+
+## 12.2 Queue Selection Objectives
+
+The queue selection process SHALL:
+
+- preserve ordering constraints
+- maximize throughput
+- minimize latency
+- prevent starvation
+- support horizontal scaling
+- isolate failures
+
+---
+
+## 12.3 Queue Selection Criteria
+
+The Dispatcher MAY evaluate:
+
+- Topic
+- Priority
+- Workflow ID
+- Correlation ID
+- Partition Key
+- Subscriber Affinity
+- Delivery Policy
+- Runtime Load
+
+Queue assignment SHALL be deterministic.
+
+---
+
+## 12.4 Queue Types
+
+The Runtime MAY expose multiple queue classes.
+
+### Standard Queue
+
+General-purpose dispatch.
+
+---
+
+### Priority Queue
+
+Processes higher-priority events first.
+
+---
+
+### FIFO Queue
+
+Maintains strict ordering.
+
+---
+
+### Partition Queue
+
+Preserves ordering within a partition.
+
+---
+
+### Delayed Queue
+
+Schedules deferred delivery.
+
+---
+
+### Retry Queue
+
+Stores events awaiting retry.
+
+---
+
+### Dead Letter Queue
+
+Stores permanently failed events.
+
+---
+
+# 13. Dispatcher Execution
+
+## 13.1 Purpose
+
+The Dispatcher is responsible for executing the delivery plan generated by the Router.
+
+It SHALL:
+
+- dequeue events
+- select subscribers
+- initiate delivery
+- monitor execution
+- collect acknowledgements
+
+---
+
+## 13.2 Dispatcher Workflow
+
+Queue
+
+↓
+
+Acquire Event
+
+↓
+
+Resolve Subscribers
+
+↓
+
+Open Trace Span
+
+↓
+
+Dispatch
+
+↓
+
+Collect Results
+
+↓
+
+Generate Metrics
+
+↓
+
+Finalize
+
+---
+
+## 13.3 Dispatch Rules
+
+Before dispatching, the Dispatcher SHALL verify:
+
+- event integrity
+- subscriber availability
+- authorization validity
+- delivery policy
+- timeout configuration
+
+Failure SHALL terminate the current dispatch attempt.
+
+---
+
+## 13.4 Parallel Dispatch
+
+When permitted by policy, the Dispatcher MAY deliver an event concurrently to multiple subscribers.
+
+Parallel execution SHALL NOT violate:
+
+- ordering guarantees
+- delivery semantics
+- audit requirements
+
+---
+
+# 14. Subscriber Processing
+
+## 14.1 Subscriber Responsibilities
+
+Subscribers SHALL:
+
+- receive event
+- validate integrity
+- process payload
+- generate acknowledgement
+- report failures
+
+Subscribers SHALL NOT mutate the received event.
+
+---
+
+## 14.2 Processing Modes
+
+Supported modes include:
+
+### Fire-and-Forget
+
+No acknowledgement required.
+
+---
+
+### Request-Response
+
+Explicit response required.
+
+---
+
+### Event Processing
+
+Generates additional runtime events.
+
+---
+
+### Workflow Execution
+
+Triggers workflow transitions.
+
+---
+
+## 14.3 Subscriber Failure
+
+If processing fails, the subscriber SHALL return a structured failure response.
+
+Failure responses SHALL include:
+
+- Error Code
+- Failure Category
+- Retry Recommendation
+- Diagnostic Metadata
+
+---
+
+# 15. Acknowledgement Flow
+
+## 15.1 Purpose
+
+Acknowledgement confirms successful receipt or processing.
+
+ACK semantics SHALL depend on delivery policy.
+
+---
+
+## 15.2 ACK Types
+
+Supported acknowledgement models:
+
+### Transport ACK
+
+Confirms message delivery.
+
+---
+
+### Processing ACK
+
+Confirms successful processing.
+
+---
+
+### Deferred ACK
+
+Generated after asynchronous completion.
+
+---
+
+### Negative ACK (NACK)
+
+Indicates processing failure.
+
+NACK SHALL include structured error information.
+
+---
+
+## 15.3 ACK Sequence
+
+Subscriber
+
+↓
+
+ACK
+
+↓
+
+Dispatcher
+
+↓
+
+Metrics
+
+↓
+
+Audit
+
+↓
+
+Completed
+
+---
+
+# 16. Completion
+
+## 16.1 Completion Criteria
+
+The Runtime SHALL mark an event as completed when:
+
+- dispatch succeeded
+- required acknowledgements received
+- retry policy satisfied
+- audit finalized
+
+---
+
+## 16.2 Completion Actions
+
+The Runtime SHALL:
+
+- finalize trace
+- update metrics
+- write audit record
+- release resources
+
+---
+
+## 16.3 Completion State
+
+Completed events SHALL become immutable historical records.
+
+---
+
+# 17. Audit Generation
+
+Every completed dispatch SHALL generate a canonical audit record.
+
+Minimum fields:
+
+- Event ID
+- Publisher
+- Subscriber
+- Dispatch Timestamp
+- Completion Timestamp
+- Result
+- Retry Count
+- Correlation ID
+- Trace ID
+
+Audit generation SHALL occur regardless of success or failure.
+
+---
+
+# 18. Telemetry Pipeline
+
+## 18.1 Metrics
+
+The Dispatcher SHALL emit:
+
+- Dispatch Rate
+- Success Rate
+- Failure Rate
+- ACK Latency
+- Queue Depth
+- Processing Duration
+
+---
+
+## 18.2 Logging
+
+Structured logs SHALL be generated for every dispatch attempt.
+
+---
+
+## 18.3 Distributed Tracing
+
+Each dispatch SHALL extend the distributed trace.
+
+Trace continuity SHALL be preserved across:
+
+- retries
+- replay
+- multi-subscriber dispatch
+- workflow boundaries
+
+---
+
+# 19. Validation Failure Sequence
+
+## 19.1 Purpose
+
+This sequence defines the runtime behavior when an event fails structural or semantic validation before entering the Event Bus.
+
+Validation failures SHALL terminate the normal dispatch pipeline.
+
+---
+
+## 19.2 Sequence
+
+Publisher
+
+↓
+
+Create Event
+
+↓
+
+Validation Engine
+
+↓
+
+Schema Validation
+
+↓
+
+Metadata Validation
+
+↓
+
+Payload Validation
+
+↓
+
+Validation Failed
+
+↓
+
+Audit Record
+
+↓
+
+Telemetry
+
+↓
+
+Error Response
+
+---
+
+## 19.3 Runtime Actions
+
+Upon validation failure the Runtime SHALL:
+
+- Reject the event.
+- Assign a canonical error code.
+- Generate an immutable audit record.
+- Emit operational metrics.
+- Preserve trace context.
+- Return a structured error response.
+
+The event SHALL NOT be persisted or routed.
+
+---
+
+# 20. Authentication Failure Sequence
+
+## 20.1 Purpose
+
+Authentication failures occur when the publisher identity cannot be verified.
+
+---
+
+## 20.2 Sequence
+
+Publisher
+
+↓
+
+Authentication Service
+
+↓
+
+Identity Verification
+
+↓
+
+Authentication Failed
+
+↓
+
+Security Audit
+
+↓
+
+Security Event
+
+↓
+
+Structured Error Response
+
+---
+
+## 20.3 Runtime Actions
+
+The Runtime SHALL:
+
+- Reject the request.
+- Record the failure.
+- Increment authentication failure metrics.
+- Generate a Security Event.
+- Preserve trace metadata.
+
+Repeated failures MAY trigger rate limiting or account lockout according to security policy.
+
+---
+
+# 21. Authorization Failure Sequence
+
+## 21.1 Purpose
+
+Authorization failures occur when an authenticated publisher lacks permission to publish an event.
+
+---
+
+## 21.2 Sequence
+
+Authenticated Publisher
+
+↓
+
+Policy Engine
+
+↓
+
+Capability Evaluation
+
+↓
+
+Authorization Denied
+
+↓
+
+Audit Record
+
+↓
+
+Security Event
+
+↓
+
+Error Response
+
+---
+
+## 21.3 Runtime Actions
+
+The Runtime SHALL:
+
+- Reject the event.
+- Preserve the original request for audit.
+- Record the policy decision.
+- Emit governance metrics.
+- Return a canonical authorization error.
+
+Unauthorized events SHALL NEVER enter the routing stage.
+
+---
+
+# 22. Dispatch Failure Sequence
+
+## 22.1 Purpose
+
+Dispatch failures occur after routing when the Dispatcher cannot successfully deliver an event.
+
+---
+
+## 22.2 Causes
+
+Examples include:
+
+- Subscriber unavailable
+- Queue unavailable
+- Dispatcher failure
+- Internal runtime error
+- Network interruption
+
+---
+
+## 22.3 Sequence
+
+Dispatcher
+
+↓
+
+Delivery Attempt
+
+↓
+
+Failure Detected
+
+↓
+
+Retry Policy Evaluation
+
+↓
+
+Retry Pending
+
+OR
+
+Dead Letter Queue
+
+---
+
+## 22.4 Runtime Actions
+
+The Dispatcher SHALL:
+
+- Preserve event integrity.
+- Record failure reason.
+- Update retry metadata.
+- Emit failure metrics.
+- Generate audit records.
+
+---
+
+# 23. Retry Sequence
+
+## 23.1 Purpose
+
+Retry enables controlled recovery from transient delivery failures.
+
+---
+
+## 23.2 Sequence
+
+Dispatch Failure
+
+↓
+
+Retry Policy
+
+↓
+
+Retry Queue
+
+↓
+
+Scheduled Delay
+
+↓
+
+Dispatch
+
+↓
+
+Success
+
+OR
+
+Retry Exhausted
+
+---
+
+## 23.3 Retry Evaluation
+
+The Runtime SHALL evaluate:
+
+- Maximum retry count
+- Retry interval
+- Backoff strategy
+- Subscriber health
+- Runtime health
+
+---
+
+## 23.4 Completion
+
+Successful retry SHALL continue the normal dispatch lifecycle.
+
+Failed retries SHALL transition to:
+
+Retry Exhausted
+
+↓
+
+Dead Letter Queue
+
+---
+
+# 24. Replay Sequence
+
+## 24.1 Purpose
+
+Replay enables historical events to be reprocessed without modifying historical records.
+
+---
+
+## 24.2 Replay Sequence
+
+Replay Request
+
+↓
+
+Authorization
+
+↓
+
+Replay Validation
+
+↓
+
+Replay Queue
+
+↓
+
+Dispatcher
+
+↓
+
+Subscriber
+
+↓
+
+Replay Completed
+
+---
+
+## 24.3 Runtime Actions
+
+Replay SHALL:
+
+- Preserve original Event ID.
+- Preserve Correlation ID.
+- Preserve Trace Metadata.
+- Generate new execution metrics.
+- Generate replay audit records.
+
+Replay SHALL NOT modify historical event data.
+
+---
+
+# 25. Dead Letter Queue Sequence
+
+## 25.1 Purpose
+
+The Dead Letter Queue (DLQ) stores events that cannot be delivered successfully.
+
+---
+
+## 25.2 Entry Sequence
+
+Retry Exhausted
+
+↓
+
+Dead Letter Queue
+
+↓
+
+Persistent Storage
+
+↓
+
+Operator Notification
+
+↓
+
+Inspection
+
+↓
+
+Replay or Archive
+
+---
+
+## 25.3 Runtime Actions
+
+The Runtime SHALL:
+
+- Preserve complete event metadata.
+- Preserve failure history.
+- Preserve retry history.
+- Preserve trace information.
+- Record final failure classification.
+
+---
+
+## 25.4 Supported Operations
+
+Operators MAY:
+
+- Inspect
+- Replay
+- Export
+- Archive
+- Delete (policy permitting)
+
+Every operation SHALL generate an audit record.
+
+---
+
+# 26. Recovery Sequence
+
+## 26.1 Purpose
+
+Recovery restores normal operation following runtime disruption.
+
+---
+
+## 26.2 Recovery Scenarios
+
+Supported scenarios include:
+
+- Process restart
+- Runtime crash
+- Node replacement
+- Broker restart
+- Network recovery
+
+---
+
+## 26.3 Recovery Sequence
+
+Runtime Restart
+
+↓
+
+Restore Configuration
+
+↓
+
+Restore Subscriptions
+
+↓
+
+Recover Event Store
+
+↓
+
+Recover Queues
+
+↓
+
+Resume Dispatch
+
+↓
+
+Health Verification
+
+---
+
+## 26.4 Recovery Guarantees
+
+Recovery SHALL preserve:
+
+- Event ordering (within guarantees)
+- Correlation IDs
+- Retry metadata
+- Audit history
+- Trace continuity
+
+Recovery SHALL resume from the last durable lifecycle state.
+
+---
+
+# 27. Multi-Subscriber Dispatch Sequence
+
+## 27.1 Purpose
+
+An event MAY have multiple subscribers.
+
+The Runtime SHALL support deterministic multi-subscriber dispatch while preserving delivery guarantees.
+
+---
+
+## 27.2 Canonical Sequence
+
+Publisher
+
+↓
+
+Event Bus
+
+↓
+
+Router
+
+↓
+
+Subscriber A
+
+↓
+
+Subscriber B
+
+↓
+
+Subscriber C
+
+↓
+
+ACK Collection
+
+↓
+
+Audit
+
+↓
+
+Completed
+
+---
+
+## 27.3 Execution Rules
+
+The Dispatcher SHALL support:
+
+- Sequential dispatch
+- Parallel dispatch
+- Priority dispatch
+- Policy-based dispatch
+
+The selected strategy SHALL be configurable.
+
+---
+
+## 27.4 Failure Isolation
+
+Failure of one subscriber SHALL NOT prevent delivery to unrelated subscribers unless the configured delivery policy explicitly requires transactional fan-out.
+
+The Dispatcher SHALL independently record:
+
+- Delivery status
+- Latency
+- Retry count
+- Error code
+
+for each subscriber.
+
+---
+
+# 28. Broadcast Sequence
+
+## 28.1 Purpose
+
+Broadcast delivery distributes a single immutable event to all eligible subscribers.
+
+Broadcast SHALL NOT duplicate business payloads; only delivery contexts MAY differ.
+
+---
+
+## 28.2 Broadcast Flow
+
+Publisher
+
+↓
+
+Event Bus
+
+↓
+
+Router
+
+↓
+
+Subscription Manager
+
+↓
+
+Subscriber Set
+
+↓
+
+Dispatcher
+
+↓
+
+Parallel Delivery
+
+↓
+
+ACK Aggregation
+
+↓
+
+Audit
+
+---
+
+## 28.3 Broadcast Guarantees
+
+The Runtime SHALL guarantee:
+
+- consistent event metadata
+- immutable payload
+- independent acknowledgement tracking
+- subscriber isolation
+
+---
+
+# 29. Context Synchronization Sequence
+
+## 29.1 Purpose
+
+The Event Bus coordinates Context Engine synchronization using canonical Context Events.
+
+---
+
+## 29.2 Sequence
+
+Context Engine
+
+↓
+
+Context Updated
+
+↓
+
+Publish ContextUpdated Event
+
+↓
+
+Router
+
+↓
+
+Interested Agents
+
+↓
+
+Local Context Refresh
+
+↓
+
+ACK
+
+---
+
+## 29.3 Requirements
+
+Context synchronization SHALL preserve:
+
+- Context Version
+- Context ID
+- Correlation ID
+- Source Agent
+- Timestamp
+
+Context updates SHALL remain deterministic.
+
+---
+
+# 30. Memory Synchronization Sequence
+
+## 30.1 Purpose
+
+Memory synchronization propagates updates between the Memory Engine and runtime consumers.
+
+---
+
+## 30.2 Sequence
+
+Memory Engine
+
+↓
+
+MemoryUpdated Event
+
+↓
+
+Event Bus
+
+↓
+
+Router
+
+↓
+
+Subscribers
+
+↓
+
+Synchronization
+
+↓
+
+Audit
+
+---
+
+## 30.3 Synchronization Rules
+
+Memory synchronization SHALL preserve:
+
+- Memory Version
+- Object Identifier
+- Consistency Metadata
+- Trust Level
+
+Consumers SHALL NOT mutate synchronization events.
+
+---
+
+# 31. Observability Pipeline
+
+Every dispatch sequence SHALL generate telemetry.
+
+---
+
+## 31.1 Metrics
+
+Required metrics include:
+
+- Publish Rate
+- Dispatch Rate
+- Queue Depth
+- Delivery Success
+- Delivery Failure
+- Retry Count
+- Replay Count
+- DLQ Count
+- End-to-End Latency
+
+---
+
+## 31.2 Structured Logging
+
+Each dispatch stage SHALL produce structured logs.
+
+Minimum fields:
+
+- Timestamp
+- Event ID
+- Correlation ID
+- Trace ID
+- Publisher
+- Subscriber
+- Topic
+- Lifecycle State
+- Result
+
+---
+
+## 31.3 Distributed Tracing
+
+The Runtime SHALL propagate trace context across:
+
+- Publisher
+- Router
+- Dispatcher
+- Subscriber
+- Retry
+- Replay
+- Dead Letter Queue
+
+Tracing SHOULD align with OpenTelemetry concepts.
+
+---
+
+# 32. Sequence Conformance Requirements
+
+An implementation SHALL conform to this specification only if it implements the mandatory dispatch sequence.
+
+Mandatory capabilities include:
+
+- Event Publication
+- Validation
+- Authentication
+- Authorization
+- Metadata Enrichment
+- Persistence
+- Routing
+- Queue Selection
+- Dispatch
+- Acknowledgement
+- Retry
+- Replay
+- Dead Letter Queue
+- Audit Generation
+- Telemetry Generation
+
+Optional capabilities SHALL be documented explicitly.
+
+---
+
+# 33. Canonical Dispatch Matrix
+
+| Phase | Mandatory | Failure Path | Audit Required |
+|--------|-----------|--------------|----------------|
+| Publish | Yes | Reject | Yes |
+| Validation | Yes | ValidationFailed | Yes |
+| Authentication | Yes | AuthenticationFailed | Yes |
+| Authorization | Yes | AuthorizationFailed | Yes |
+| Enrichment | Yes | Reject | Yes |
+| Persistence | Yes | Abort Dispatch | Yes |
+| Routing | Yes | RoutingFailed | Yes |
+| Queue Selection | Yes | DispatchFailed | Yes |
+| Dispatch | Yes | Retry | Yes |
+| Delivery | Yes | DeliveryTimeout | Yes |
+| ACK | Configurable | Retry | Yes |
+| Completion | Yes | DLQ | Yes |
+| Replay | Optional | ReplayFailed | Yes |
+
+---
+
+# 34. References
+
+## Normative
+
+- runtime/architecture/EVENT_BUS.md
+- runtime/state-machines/event_lifecycle.md
+- runtime/contracts/event_contract.json
+- runtime/pseudocode/dispatcher.md
+- specifications/ERROR_CODES.md
+- specifications/VERSIONING.md
+- specifications/ACP_JSON_SCHEMA.md
+
+## Informative
+
+- CloudEvents 1.0
+- OpenTelemetry Specification
+- AsyncAPI Specification
+- Enterprise Integration Patterns
+
+---
+
+# 35. Revision History
+
+| Version | Status | Description |
+|---------|--------|-------------|
+| 0.1.0 | Draft | Initial dispatch flow |
+| 0.8.0 | Review | Failure, retry, replay sequences added |
+| 1.0.0 | Production Draft | Canonical Runtime Dispatch Specification |
+
+---
+
+# Appendix A — End-to-End Dispatch Flow
+
+Publisher
+
+↓
+
+Create Event
+
+↓
+
+Validate
+
+↓
+
+Authenticate
+
+↓
+
+Authorize
+
+↓
+
+Enrich Metadata
+
+↓
+
+Persist
+
+↓
+
+Route
+
+↓
+
+Queue
+
+↓
+
+Dispatch
+
+↓
+
+Subscriber
+
+↓
+
+ACK
+
+↓
+
+Audit
+
+↓
+
+Completed
+
+---
+
+# Appendix B — Failure Flow
+
+ValidationFailed
+
+↓
+
+AuthenticationFailed
+
+↓
+
+AuthorizationFailed
+
+↓
+
+RoutingFailed
+
+↓
+
+DispatchFailed
+
+↓
+
+RetryPending
+
+↓
+
+RetryExhausted
+
+↓
+
+DeadLetterQueue
+
+↓
+
+Replay (Optional)
+
+↓
+
+Archive
+
+---
+
+# Document Status
+
+Status: **Production Draft**
+
+Maturity Level: **L2 (Sequence Complete)**
+
+Implementation Status
+
+- Dispatch Flow: Complete
+- Failure Flow: Complete
+- Retry Flow: Complete
+- Replay Flow: Complete
+- Broadcast Flow: Complete
+- Context Synchronization: Complete
+- Memory Synchronization: Complete
+- Observability: Complete
+- Conformance: Complete
+
+This document is the canonical runtime sequence specification for all Event Bus implementations within the AITOS Runtime.
