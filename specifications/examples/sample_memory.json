@@ -1,0 +1,118 @@
+{
+  "schemaVersion": "1.0.0",
+
+  "memoryId": "MEM-000001",
+
+  "title": "Initial Architecture Decision Knowledge",
+
+  "description": "Persistent engineering memory capturing the approved initial architecture of the AITOS AI Operating System.",
+
+  "classification": "Architecture",
+
+  "scope": "Repository",
+
+  "authority": "Approved",
+
+  "status": "ACTIVE",
+
+  "version": "1.0.0",
+
+  "createdAt": "2026-07-06T00:00:00Z",
+
+  "updatedAt": "2026-07-06T00:00:00Z",
+
+  "owner": {
+    "team": "Architecture",
+    "maintainer": "Architecture Review Board"
+  },
+
+  "source": {
+    "type": "ADR",
+    "reference": "ADR-0001-INITIAL_ARCHITECTURE",
+    "repository": "AITOS"
+  },
+
+  "relationships": {
+    "contexts": [
+      "CTX-000001"
+    ],
+    "registry": [
+      "REG-000001"
+    ],
+    "agents": [
+      "AGENT-000001"
+    ],
+    "documents": [
+      "DESIGN_PHILOSOPHY.md"
+    ]
+  },
+
+  "knowledge": {
+    "summary": "AITOS adopts a modular, specification-driven, governance-first AI Operating System architecture.",
+
+    "principles": [
+      "Specification First",
+      "Governance by Design",
+      "AI-Assisted Engineering",
+      "Deterministic Decision Making",
+      "Version Controlled Knowledge"
+    ],
+
+    "decisions": [
+      {
+        "id": "ADR-0001",
+        "title": "Initial Architecture",
+        "status": "Accepted"
+      }
+    ],
+
+    "constraints": [
+      "All engineering artifacts must be version controlled.",
+      "Every architectural decision requires an ADR.",
+      "Every schema must be machine-readable."
+    ],
+
+    "references": [
+      "AES-001_ARCHITECTURE.md",
+      "DESIGN_PHILOSOPHY.md"
+    ]
+  },
+
+  "retrieval": {
+    "keywords": [
+      "architecture",
+      "governance",
+      "adr",
+      "knowledge",
+      "memory"
+    ],
+    "priority": "HIGH",
+    "searchable": true
+  },
+
+  "lifecycle": {
+    "state": "ACTIVE",
+    "retention": "Permanent",
+    "archivable": true
+  },
+
+  "security": {
+    "classification": "Internal",
+    "confidentiality": "Medium",
+    "integrity": "High",
+    "availability": "High"
+  },
+
+  "validation": {
+    "schema": "MEMORY-1.0",
+    "validated": true,
+    "validatedAt": "2026-07-06T00:00:00Z"
+  },
+
+  "audit": {
+    "createdBy": "Architecture Team",
+    "approvedBy": "Engineering Governance Board",
+    "revision": 1,
+    "changeReference": "ADR-0001"
+  }
+}
