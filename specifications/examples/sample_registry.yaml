@@ -1,0 +1,174 @@
+# ============================================================================
+# AITOS Sample Registry Entry
+# ============================================================================
+# Specification:
+#   AOS-SPEC-005 Registry Schema
+#
+# Purpose:
+#   Canonical reference implementation for Agent Registry.
+#
+# Version:
+#   1.0.0
+# ============================================================================
+
+apiVersion: aitos.io/v1
+
+kind: AgentRegistry
+
+metadata:
+
+  registryId: REG-000001
+
+  createdAt: 2026-07-06T00:00:00Z
+
+  updatedAt: 2026-07-06T00:00:00Z
+
+spec:
+
+  schemaVersion: 1.0.0
+
+  status: ACTIVE
+
+  agent:
+
+    agentId: AGENT-000001
+
+    name: Architecture Agent
+
+    displayName: Architecture Review Agent
+
+    category: Architecture
+
+    version: 1.0.0
+
+  ownership:
+
+    owner: Architecture Team
+
+    maintainer: Engineering Team
+
+    reviewer: Governance Board
+
+    approver: Chief Architect
+
+  lifecycle:
+
+    state: ACTIVE
+
+    registeredAt: 2026-07-06T00:00:00Z
+
+    activationDate: 2026-07-06T00:00:00Z
+
+  capabilityProfile:
+
+    tier: T3
+
+    capabilities:
+
+      - architecture-review
+
+      - adr-validation
+
+      - governance-analysis
+
+      - repository-analysis
+
+      - documentation-review
+
+  permissionProfile:
+
+    permissions:
+
+      - READ_CONTEXT
+
+      - READ_MEMORY
+
+      - READ_REGISTRY
+
+      - CREATE_ADR
+
+      - REVIEW_DOCUMENTATION
+
+      - REVIEW_ARCHITECTURE
+
+  trust:
+
+    level: T3
+
+    verified: true
+
+    assessmentDate: 2026-07-06T00:00:00Z
+
+  certification:
+
+    status: CERTIFIED
+
+    level: D
+
+    evaluationId: EVAL-000001
+
+    certifiedAt: 2026-07-06T00:00:00Z
+
+    expiresAt: 2027-07-06T00:00:00Z
+
+  runtime:
+
+    executionMode: Coordinator
+
+    minimumRuntimeVersion: 1.0.0
+
+    supportedProtocols:
+
+      - ACP-1.0
+
+    supportedSchemas:
+
+      - CONTEXT-1.0
+
+      - MEMORY-1.0
+
+      - REGISTRY-1.0
+
+  dependencies:
+
+    agents:
+
+      - AGENT-000002
+
+    contexts:
+
+      - CTX-000001
+
+    memories:
+
+      - MEM-000001
+
+    documents:
+
+      - ADR-0001
+
+      - DESIGN_PHILOSOPHY.md
+
+  compatibility:
+
+    api:
+
+      minimum: 1.0.0
+
+      maximum: 1.x
+
+    schema:
+
+      registry: 1.0.0
+
+      manifest: 1.0.0
+
+  audit:
+
+    createdBy: Architecture Team
+
+    approvedBy: Engineering Governance Board
+
+    changeReference: ADR-0001
+
+    revision: 1
