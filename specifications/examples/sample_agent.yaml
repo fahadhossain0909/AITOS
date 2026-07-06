@@ -1,0 +1,118 @@
+# ============================================================================
+# AITOS Sample Agent Manifest
+# ============================================================================
+# Specification:
+#   AOS-SPEC-002 Agent Manifest Schema
+#
+# Purpose:
+#   Canonical reference implementation for Agent Manifest.
+#
+# Version:
+#   1.0.0
+# ============================================================================
+
+apiVersion: aitos.io/v1
+
+kind: Agent
+
+metadata:
+
+  id: AGENT-000001
+
+  name: Architecture Agent
+
+  displayName: Architecture Review Agent
+
+  description: >
+    Reviews architectural decisions, validates ADRs,
+    evaluates RFCs and enforces engineering standards.
+
+  version: 1.0.0
+
+  owner: Engineering Team
+
+  maintainer: Architecture Group
+
+spec:
+
+  category: Architecture
+
+  tier: T3
+
+  lifecycle:
+
+    status: ACTIVE
+
+  capabilities:
+
+    - architecture-review
+
+    - adr-validation
+
+    - rfc-review
+
+    - governance-check
+
+    - repository-analysis
+
+  permissions:
+
+    - READ_CONTEXT
+
+    - READ_MEMORY
+
+    - CREATE_ADR
+
+    - REVIEW_DOCUMENTATION
+
+    - REVIEW_ARCHITECTURE
+
+  supportedProtocols:
+
+    - ACP-1.0
+
+  supportedSchemas:
+
+    - CONTEXT-1.0
+
+    - MEMORY-1.0
+
+    - REGISTRY-1.0
+
+  runtime:
+
+    minimumVersion: 1.0.0
+
+    executionMode: Coordinator
+
+    concurrency: Sequential
+
+    supportsStreaming: true
+
+    timeoutSeconds: 300
+
+security:
+
+  trustLevel: T3
+
+  authentication: OAuth2
+
+  authorization: RBAC
+
+  secretAccess: false
+
+validation:
+
+  certification:
+
+    level: D
+
+    status: CERTIFIED
+
+status:
+
+  state: READY
+
+  health: HEALTHY
+
+  lastHeartbeat: 2026-07-06T00:00:00Z
