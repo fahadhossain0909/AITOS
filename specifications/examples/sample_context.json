@@ -1,0 +1,116 @@
+{
+  "schemaVersion": "1.0.0",
+
+  "contextId": "CTX-000001",
+
+  "title": "Architecture Review Session",
+
+  "description": "Canonical reference context object for architecture review workflows.",
+
+  "classification": "Architecture",
+
+  "scope": "Repository",
+
+  "authority": "Approved",
+
+  "status": "ACTIVE",
+
+  "version": "1.0.0",
+
+  "createdAt": "2026-07-06T00:00:00Z",
+
+  "updatedAt": "2026-07-06T00:00:00Z",
+
+  "owner": {
+    "team": "Architecture",
+    "maintainer": "Architecture Review Board"
+  },
+
+  "source": {
+    "type": "ADR",
+    "reference": "ADR-0001-INITIAL_ARCHITECTURE",
+    "repository": "AITOS"
+  },
+
+  "priority": "HIGH",
+
+  "tags": [
+    "architecture",
+    "adr",
+    "repository",
+    "review"
+  ],
+
+  "relationships": {
+    "memory": [
+      "MEM-000001"
+    ],
+    "registry": [
+      "REG-000001"
+    ],
+    "agents": [
+      "AGENT-000001"
+    ],
+    "adrs": [
+      "ADR-0001"
+    ],
+    "rfcs": [
+      "RFC-0001"
+    ]
+  },
+
+  "dependencies": [
+    {
+      "type": "Memory",
+      "reference": "MEM-000001"
+    },
+    {
+      "type": "Agent",
+      "reference": "AGENT-000001"
+    }
+  ],
+
+  "content": {
+    "objective": "Review proposed architecture against approved engineering standards.",
+
+    "inputs": [
+      "ADR Document",
+      "RFC Proposal",
+      "Repository Metadata"
+    ],
+
+    "expectedOutputs": [
+      "Architecture Review",
+      "Risk Assessment",
+      "Decision Recommendation"
+    ]
+  },
+
+  "loading": {
+    "strategy": "PriorityBased",
+    "cacheable": true,
+    "refreshPolicy": "OnUpdate",
+    "maximumAgeHours": 24
+  },
+
+  "security": {
+    "classification": "Internal",
+    "confidentiality": "Medium",
+    "integrity": "High",
+    "availability": "High",
+    "encrypted": false
+  },
+
+  "validation": {
+    "schema": "CONTEXT-1.0",
+    "validated": true,
+    "validatedAt": "2026-07-06T00:00:00Z"
+  },
+
+  "audit": {
+    "createdBy": "Architecture Team",
+    "approvedBy": "Engineering Governance Board",
+    "changeReference": "ADR-0001",
+    "revision": 1
+  }
+}
